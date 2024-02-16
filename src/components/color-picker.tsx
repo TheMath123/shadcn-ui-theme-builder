@@ -5,22 +5,43 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@radix-ui/react-popover";
-import { ColorDefinition, hslToHex } from "@/utils/Color";
+import {
+  ColorDefinition,
+  ColorObject,
+  hslToHex,
+  hexToHSL,
+} from "@/utils/color";
 import { ChromePicker } from "react-color";
 import { TableRow, TableCell } from "./ui/table";
 import { toast } from "./ui/use-toast";
+import { useColors } from "@/lib/colors";
 
 interface ColorPickerProps {
   color: ColorDefinition;
-  onColorChange?: (color: string) => void; // Callback quando a cor é alterada
 }
 
-export function ColorPickerRow({ color, onColorChange }: ColorPickerProps) {
+export function ColorPickerRow({ color }: ColorPickerProps) {
+  const [colorAtom, setColorAtom] = useColors();
   const [colorHash, setColorHash] = useState(hslToHex(color.color));
 
   const handleChange = (newColor: string) => {
     setColorHash(newColor);
-    onColorChange && onColorChange(newColor); // Chama o callback com a nova cor
+    if (colorAtom) {
+      const isDark = color.id.split("-")[0] as keyof ColorObject;
+      const newColorAtom = {
+        ...colorAtom,
+        [isDark]: colorAtom[isDark].map((item: ColorDefinition) => {
+          if (item.id === color.id) {
+            return {
+              ...item,
+              color: hexToHSL(newColor),
+            };
+          }
+          return item;
+        }),
+      };
+      setColorAtom(newColorAtom);
+    }
   };
 
   function formattedColorName(name: string) {
@@ -46,7 +67,6 @@ export function ColorPickerRow({ color, onColorChange }: ColorPickerProps) {
 
           <PopoverContent>
             <ChromePicker
-              className={cn("absolute")}
               color={colorHash}
               onChange={(color) => {
                 handleChange(color.hex);
@@ -56,7 +76,7 @@ export function ColorPickerRow({ color, onColorChange }: ColorPickerProps) {
         </Popover>
       </TableCell>
       <TableCell>
-        <p className="font-semibold">{formattedColorName(color.label)}</p>
+        <p className="font-semibold w-2xl">{formattedColorName(color.label)}</p>
       </TableCell>
       <TableCell className="font-medium">
         <code

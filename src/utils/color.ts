@@ -1,4 +1,5 @@
 export type ColorDefinition = {
+  id: string;
   label: string;
   color: string;
 };
@@ -9,14 +10,16 @@ export type ColorObject = {
 };
 
 function parseCssToColorObject(cssString: string): ColorObject {
-  // Função auxiliar para extrair cores de um bloco CSS
-  const extractColors = (block: string): ColorDefinition[] => {
+  const extractColors = (block: string, prefix: string): ColorDefinition[] => {
     const colorDefinitions: ColorDefinition[] = [];
     const lines = block.split("\n");
     lines.forEach((line) => {
       const match = line.match(/(--[^:]+):\s*([^;]+);/);
       if (match) {
+        const name = match[1].trim().substring(2);
+        const id = `${prefix}-${name}`;
         colorDefinitions.push({
+          id,
           label: match[1].trim(),
           color: match[2].trim(),
         });
@@ -25,15 +28,16 @@ function parseCssToColorObject(cssString: string): ColorObject {
     return colorDefinitions;
   };
 
-  // Dividir o CSS em partes para 'root' e 'dark'
   const rootBlockMatch = cssString.match(/:root\s*{([^}]+)}/);
   const darkBlockMatch = cssString.match(/\.dark\s*{([^}]+)}/);
 
-  // Extrair cores usando a função auxiliar
-  const rootColors = rootBlockMatch ? extractColors(rootBlockMatch[1]) : [];
-  const darkColors = darkBlockMatch ? extractColors(darkBlockMatch[1]) : [];
+  const rootColors = rootBlockMatch
+    ? extractColors(rootBlockMatch[1], "root")
+    : [];
+  const darkColors = darkBlockMatch
+    ? extractColors(darkBlockMatch[1], "dark")
+    : [];
 
-  // Criar e retornar o objeto estruturado
   return {
     root: rootColors,
     dark: darkColors,
@@ -81,4 +85,62 @@ function hslToHex(hsl: string): string {
   return hexColor;
 }
 
-export { parseCssToColorObject, hslToHex };
+function hexToHSL(hex: string): string {
+  // Remove the '#' if it's present
+  hex = hex.replace(/^#/, "");
+
+  // Convert hex to RGB values
+  let r: number, g: number, b: number;
+  if (hex.length === 3) {
+    r = parseInt(hex[0] + hex[0], 16);
+    g = parseInt(hex[1] + hex[1], 16);
+    b = parseInt(hex[2] + hex[2], 16);
+  } else {
+    r = parseInt(hex.substring(0, 2), 16);
+    g = parseInt(hex.substring(2, 4), 16);
+    b = parseInt(hex.substring(4, 6), 16);
+  }
+
+  // Convert RGB to HSL
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  let h: number = 0; // Initialize 'h' to avoid error
+  let s: number,
+    l: number = (max + min) / 2;
+
+  if (max === min) {
+    s = 0; // Achromatic
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
+    }
+    h /= 6;
+  }
+
+  // Convert to percentages
+  s *= 100;
+  l *= 100;
+  h *= 360;
+
+  // Round the values
+  h = Math.round(h);
+  s = Math.round(s * 10) / 10; // Round to one decimal place
+  l = Math.round(l * 10) / 10; // Round to one decimal place
+
+  return `${h}, ${s}%, ${l}%`;
+}
+
+export { parseCssToColorObject, hslToHex, hexToHSL };

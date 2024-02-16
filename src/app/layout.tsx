@@ -1,8 +1,9 @@
-// Next
 import { Metadata } from "next";
-import "./globals.css";
 import { cn } from "@/lib/utils";
 import { fontSans } from "./font";
+import { Provider } from "jotai";
+
+import "./globals.css";
 
 interface RootLayoutProps {
   children: React.ReactNode;
@@ -10,7 +11,7 @@ interface RootLayoutProps {
 
 export const metadata: Metadata = {
   title: "Shadcn/UI Theme Builder",
-  description: "Painel de movimentações segurados",
+  description: "...",
 };
 
 export default function RootLayout({ children }: RootLayoutProps) {
@@ -22,7 +23,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           fontSans.variable
         )}
       >
-        {children}
+        <Provider>{children}</Provider>
       </body>
     </html>
   );

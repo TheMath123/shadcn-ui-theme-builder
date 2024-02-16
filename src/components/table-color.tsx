@@ -1,4 +1,4 @@
-import { ColorDefinition } from "@/utils/Color";
+import { ColorDefinition } from "@/utils/color";
 import { ColorPickerRow } from "./color-picker";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody } from "./ui/table";
