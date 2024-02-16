@@ -90,7 +90,7 @@ export function Creator() {
     <div className="space-y-8 w-full max-w-3xl">
       <Card>
         <CardHeader>
-          <CardTitle>Creator Theme shadcn/ui</CardTitle>
+          <CardTitle>Shadcn/UI Theme Builder</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Textarea
